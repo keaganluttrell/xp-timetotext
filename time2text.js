@@ -1,4 +1,5 @@
 'use strict'
+//'08:54' should be converted to 'eight fifty-four in the morning'
 
 const hourDict = {
     '1': "one",
@@ -18,7 +19,7 @@ const hourDict = {
     '15': "fifteen",
     '16': "sixteen",
     '17': "seventeen",
-    '18': "eightteen",
+    '18': "eighteen",
     '19': "nineteen"
 };
 
@@ -28,16 +29,57 @@ const minDict = {
     '3': 'thirty',
     '4': 'fourty',
     '5': 'fifty'
-};
+}
+
+const specialMin = {
+    5: 'five past',
+    10: 'ten past',
+    15: 'quarter past',
+    20: 'twenty past',
+    30: 'half past',
+    40: 'twenty to',
+    45: 'quarter to',
+    50: "ten to",
+    55: 'five to'
+}
+
 
 function time2text(time) {
+    if (time === "24:00" || time === "00:00") {
+        return "midnight";
+    } else if (time === "12:00") {
+        return "noon";
+    }
+
+    let isSpecial = minuteCheck(time)
     let hr = hourString(time);
     let min = minString(time);
     let sfx = suffix(time);
-    console.log(hr, min, sfx);
-};
 
-//returns in the morning, in the evening, in the afternoon
+    if (isSpecial) {
+        if (time.slice(3, 5) > 30) {
+            let num = String(Number(time.slice(0, 2)) + 1)
+            hr = hourString(num);
+            sfx = suffix(num);
+        }
+        if (hr === 'twelve' && (time.slice(0, 2) === '00' || time.slice(0, 2) === '23')) {
+            hr = "midnight"
+            sfx = ''
+        } else if (hr === 'twelve') {
+            hr = "noon"
+            sfx = ''
+        }
+        return `${isSpecial} ${hr} ${sfx}`.trim();
+    } else {
+        return `${hr} ${min} ${sfx}`.trim();
+    }
+}
+
+const minuteCheck = (time) => {
+    let min = Number(time.slice(3, 5))
+    return specialMin[min];
+}
+
 let suffix = (time) => {
     if (time === "00:00" || time === "12:00") {
         return ""
@@ -56,9 +98,8 @@ let suffix = (time) => {
     if (hour <= 23) {
         return "in the evening";
     }
-};
+}
 
-//'08:54'
 let hourString = (time) => {
     let hour = Number(time.slice(0, 2));
     if (hour === 0) {
@@ -67,7 +108,7 @@ let hourString = (time) => {
         hour -= 12;
     }
     return hourDict[hour];
-};
+}
 
 let minString = (time) => {
     let firstDigit = time[3];
@@ -77,23 +118,15 @@ let minString = (time) => {
     if (firstDigit === '1') {
         return hourDict[time[3] + time[4]];
     }
+
+    if (firstDigit === '0' && secondDigit === '0') {
+        return "o'clock"
+    }
+
     if (firstDigit === '0') {
         return 'oh ' + string2;
     }
     return `${string1}-${string2}`;
-};
-
-// minString("08:54");
-// console.log(minString("08:10"));
-// minString("08:04");
-
-time2text("08:54")
-time2text("12:13")
-time2text("18:10")
-time2text("00:05")
-// console.log(timeString("08:54"));
-// console.log(timeString("00:54"));
-// console.log(suffix("18:54"))
-// console.log(suffix("12:54"))
+}
 
 module.exports = time2text
